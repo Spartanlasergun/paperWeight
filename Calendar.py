@@ -9,6 +9,9 @@ root.resizable(0, 0)
 Main_Canvas = tkinter.Canvas(root, width=1150, height=650, background='ghostwhite')
 Main_Canvas.place(x=-1, y=-1)
 
+#load images
+Calendar_IMG = tkinter.PhotoImage(file="Calendar.png")
+
 #For Global Use
 Month_List = ["null", "January", "February", "March", "April", "May", "June",
               "July", "August", "September", "October", "November", "December"]
@@ -38,17 +41,21 @@ def Calendar_Base():
     #Clear Canvas to initialize
     Main_Canvas.delete("all")
 
+    #display background image
+    Main_Canvas.create_image(0, 0, anchor='nw', image=Calendar_IMG)
+
     global cal_boxes
     cal_boxes = []
 
     #basic calendar control panel outline
-    Main_Canvas.create_line(-1, 50, 350, 50, width='2', fill='grey')
-    Main_Canvas.create_line(-1, 250, 300, 250, width='2', fill='grey')
-    Main_Canvas.create_line(300, -1, 300, 250, width='2', fill='grey')
-    Main_Canvas.create_line(350, -1, 350, 50, width='2', fill='grey')
-    Main_Canvas.create_line(75, 50, 75, 100, width='2', fill='grey')
-    Main_Canvas.create_line(225, 50, 225, 100, width='2', fill='grey')
-    Main_Canvas.create_line(75, 100, 225, 100, width='2', fill='grey')
+    line_colour = "black"
+    Main_Canvas.create_line(-1, 50, 350, 50, width='2', fill=line_colour)
+    Main_Canvas.create_line(-1, 250, 300, 250, width='2', fill=line_colour)
+    Main_Canvas.create_line(300, -1, 300, 250, width='2', fill=line_colour)
+    Main_Canvas.create_line(350, -1, 350, 50, width='2', fill=line_colour)
+    Main_Canvas.create_line(75, 50, 75, 100, width='2', fill=line_colour)
+    Main_Canvas.create_line(225, 50, 225, 100, width='2', fill=line_colour)
+    Main_Canvas.create_line(75, 100, 225, 100, width='2', fill=line_colour)
 
     #define date grid boundaries and properties
     lower_boundary = 240
@@ -500,21 +507,20 @@ def Calendar_Grid_Click():
             Cal_Backward()
         elif cal_index > 21:
             Cal_Forward()
+        Click_Attrib = "grid"
+        Cal_Setup()
         Main_Canvas.create_text(575, 325, text=date)
         for item in cal_boxes:
             if len(item) == 6:
                 if item[5] == int(date):
                     Main_Canvas.create_text(575, 350, text=item[4])
-        Click_Attrib = "grid"
-        Cal_Setup()
     elif len(cal_boxes[cal_index]) == 6:
         fetch = cal_boxes[cal_index]
         Click_Highlight = int(fetch[5])
+        Click_Attrib = "grid"
         Cal_Setup()
         Main_Canvas.create_text(575, 325, text=str(fetch[5]))
         Main_Canvas.create_text(575, 350, text=str(fetch[4]))
-        Click_Attrib = "grid"
-        Cal_Setup()
 
 #main control for click bindings
 def Switchboard(event):
