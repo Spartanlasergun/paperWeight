@@ -71,19 +71,108 @@ test = 0
 a = 0
 b = 1
 c = 2
-
+sprouts = []
+leaves = []
 while test != 65:
+    colour = "green"
     thickness = random.randint(2, 4)
     Graph.create_line(vines[a][0], vines[a][1], vines[b][0], vines[b][1], vines[c][0], vines[c][1],
-                      width=thickness, fill="green", smooth=1)
+                      width=thickness, fill=colour, smooth=1)
 
-    if thickness == 4:
+    if thickness >= 3:
         x_1 = vines[b][0]
         y_1 = vines[b][1]
-        if x_1 < y_1:
-            Graph.create_line(x_1, y_1, x_1, y_1+20, width=2, fill="green")
-        else:
-            Graph.create_line(x_1, y_1, x_1+20, y_1, width=2, fill="green")
+        curve_shift_1 = random.randint(1, 5)
+        curve_shift_2 = random.randint(5, 15)
+        offset_1 = random.randint(1, 5)
+        offset_2 = random.randint(5, 15)
+        if (x_1 < y_1) and (x_1 < 350):
+            polar_shift = random.randint(0, 1)
+            if polar_shift == 0:
+                offset_1 = -offset_1
+                offset_2 = -offset_2
+            polar_shift = random.randint(0, 1)
+            if polar_shift == 0:
+                curve_shift_1 = -curve_shift_1
+                curve_shift_2 = -curve_shift_2
+            Graph.create_line(x_1, y_1,
+                              (x_1 + curve_shift_1), (y_1 + offset_1),
+                              (x_1 + curve_shift_2), (y_1 + offset_2),
+                              width=2, fill=colour, smooth=1)
+
+            #store sprout data
+            temp = [x_1, y_1,
+                    (x_1 + curve_shift_1), (y_1 + offset_1),
+                    (x_1 + curve_shift_2), (y_1 + offset_2)]
+            sprouts.append(temp)
+
+            #create_leaf
+            l_base_x = x_1 + curve_shift_2
+            l_base_y = y_1 + offset_2
+            apex_x = l_base_x + curve_shift_2
+            apex_y = l_base_y + offset_2
+            Graph.create_polygon(l_base_x, l_base_y,
+                                 (apex_x - curve_shift_1), l_base_y,
+                                 apex_x, (apex_y - offset_1),
+                                 apex_x, apex_y,
+                                 (apex_x - offset_1), apex_y,
+                                 l_base_x, (apex_y - offset_1),
+                                 l_base_x, l_base_y,
+                                 fill="lime", outline="black", smooth=1)
+
+            #store leaf_data
+            temp_1 = [l_base_x, l_base_y,
+                        (apex_x - curve_shift_1), l_base_y,
+                        apex_x, (apex_y - offset_1),
+                        apex_x, apex_y,
+                        (apex_x - offset_1), apex_y,
+                        l_base_x, (apex_y - offset_1),
+                        l_base_x, l_base_y]
+            leaves.append(temp_1)
+
+        elif (x_1 > y_1) and (y_1 < 240):
+            polar_shift = random.randint(0, 1)
+            if polar_shift == 0:
+                offset_1 = -offset_1
+                offset_2 = -offset_2
+            polar_shift = random.randint(0, 1)
+            if polar_shift == 0:
+                curve_shift_1 = -curve_shift_1
+                curve_shift_2 = -curve_shift_2
+            Graph.create_line(x_1, y_1,
+                              (x_1 + offset_1), (y_1 + curve_shift_1),
+                              (x_1 + offset_2), (y_1 + curve_shift_2),
+                              width=2, fill=colour, smooth=1)
+
+            # store sprout data
+            temp = [x_1, y_1,
+                    (x_1 + offset_1), (y_1 + curve_shift_1),
+                    (x_1 + offset_2), (y_1 + curve_shift_2)]
+            sprouts.append(temp)
+
+            #create_leaf
+            l_base_x = x_1 + offset_2
+            l_base_y = y_1 + curve_shift_2
+            apex_x = l_base_x + offset_2
+            apex_y = l_base_y + curve_shift_2
+            Graph.create_polygon(l_base_x, l_base_y,
+                                 (apex_x - offset_1), l_base_y,
+                                 apex_x, (apex_y - offset_1),
+                                 apex_x, apex_y,
+                                 (apex_x - offset_1), apex_y,
+                                 l_base_x, (apex_y - curve_shift_1),
+                                 l_base_x, l_base_y,
+                                 fill="lime", outline="black", smooth=1)
+
+            # store leaf_data
+            temp_1 = [l_base_x, l_base_y,
+                        (apex_x - offset_1), l_base_y,
+                        apex_x, (apex_y - offset_1),
+                        apex_x, apex_y,
+                        (apex_x - offset_1), apex_y,
+                        l_base_x, (apex_y - curve_shift_1),
+                        l_base_x, l_base_y]
+            leaves.append(temp_1)
 
     a = a + 2
     b = b + 2
@@ -91,6 +180,7 @@ while test != 65:
     test = test + 1
     Graph.update()
     time.sleep(0.02)
-
+Graph.create_line(0, 250, 300, 250, width=2, dash=(125, 125))
+Graph.create_line(300, 250, 300, 0, width=2, dash=(125, 125))
 
 root.mainloop()
