@@ -1,21 +1,42 @@
+import os
+from os import path
 import tkinter
+import time
+import random
+import subprocess
 from datetime import datetime
+from tkinter import font
 
 root = tkinter.Tk()
 root.geometry('1150x650')
 root.title('Paperweight')
 root.resizable(0, 0)
 
+#get current working directory
+cur_dir = os.getcwd()
+
+#check for polyfile directory and create one if necessary
+sub_dirs = [f.path for f in os.scandir(cur_dir) if f.is_dir()]
+polyfile_check = 0
+polyfile = cur_dir + "/polyfile"
+for dir in sub_dirs:
+    if path.basename(dir) == "polyfile":
+        polyfile_check = 1
+if polyfile_check == 0:
+    os.mkdir(polyfile)
+
 Main_Canvas = tkinter.Canvas(root, width=1150, height=650, background='ghostwhite')
 Main_Canvas.place(x=-1, y=-1)
 
+#----------------------------------------Calendar_Operations_BEGIN----------------------------------------------
+
 #load images
-Calendar_IMG = tkinter.PhotoImage(file="Calendar.png")
+Calendar_IMG = tkinter.PhotoImage(file="Calendar_2.png")
 
 #For Global Use
 Month_List = ["null", "January", "February", "March", "April", "May", "June",
               "July", "August", "September", "October", "November", "December"]
-Month_Abbrev = ["null","Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+Month_Abbrev = ["null", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 Weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 Current_Month = "January"
@@ -37,12 +58,21 @@ Click_Highlight = None
 #Define Calendar Date Boxes outside of Calendar_Base Method
 cal_boxes = []
 
+#Vines Animation
+Load_Vines = False
+Load_Vines_Delay = True
+seed = cur_dir + "/Ivy.py"
+germinate = subprocess.Popen(["python", seed])
+germinate.wait()
+
+
 def Calendar_Base():
     #Clear Canvas to initialize
     Main_Canvas.delete("all")
 
     #display background image
-    Main_Canvas.create_image(0, 0, anchor='nw', image=Calendar_IMG)
+    Main_Canvas.create_image(0, 50, anchor='nw', image=Calendar_IMG)
+    Main_Canvas.create_rectangle(75, 50, 225, 100, fill="white")
 
     global cal_boxes
     cal_boxes = []
@@ -57,6 +87,73 @@ def Calendar_Base():
     Main_Canvas.create_line(225, 50, 225, 100, width='2', fill=line_colour)
     Main_Canvas.create_line(75, 100, 225, 100, width='2', fill=line_colour)
 
+    #IVY
+    global Load_Vines
+    global Load_Vines_Delay
+    if Load_Vines == True:
+        get_vines = open(cur_dir + "/vines.txt", "r", encoding='utf8')
+        vines_pull = get_vines.read().splitlines()
+        get_vines.close()
+        vines = []
+        for item in vines_pull:
+            coords = item.split(",")
+            x = coords[0]
+            y = coords[1]
+            temp = [x, y]
+            vines.append(temp)
+        stop = 0
+        a = 0
+        b = 1
+        c = 2
+        while stop != 65:
+            thickness = random.randint(2, 4)
+            Main_Canvas.create_line(vines[a][0], vines[a][1], vines[b][0], vines[b][1], vines[c][0], vines[c][1],
+                              width=thickness, fill="green", smooth=1)
+            a = a + 2
+            b = b + 2
+            c = c + 2
+            stop = stop + 1
+            Main_Canvas.create_rectangle(75-stop, 175-stop, 225+stop, 175+stop, fill="white")
+            if Load_Vines_Delay == True:
+                Main_Canvas.update()
+                time.sleep(0.02)
+        get_sprouts = open(cur_dir + "/sprouts.txt", "r", encoding='utf8')
+        sprouts = get_sprouts.read().splitlines()
+        get_sprouts.close()
+        for item in sprouts:
+            thickness = random.randint(2, 4)
+            coords = item.split(",")
+            x_1 = coords[0]
+            y_1 = coords[1]
+            x_2 = coords[2]
+            y_2 = coords[3]
+            x_3 = coords[4]
+            y_3 = coords[5]
+            Main_Canvas.create_line(x_1, y_1, x_2, y_2, x_3, y_3, width=thickness, fill="green", smooth=1)
+
+        get_leaves = open(cur_dir + "/leaves.txt", "r", encoding='utf8')
+        leaves = get_leaves.read().splitlines()
+        get_leaves.close()
+        for poly in leaves:
+            item = poly.split(",")
+            x_1 = item[0]
+            y_1 = item[1]
+            x_2 = item[2]
+            y_2 = item[3]
+            x_3 = item[4]
+            y_3 = item[5]
+            x_4 = item[6]
+            y_4 = item[7]
+            x_5 = item[8]
+            y_5 = item[9]
+            x_6 = item[10]
+            y_6 = item[11]
+            x_7 = item[12]
+            y_7 = item[13]
+            Main_Canvas.create_polygon(x_1, y_1, x_2, y_2, x_3, y_3, x_4, y_4, x_5, y_5, x_6, y_6, x_7, y_7,
+                                       fill="lime", outline="black", smooth=1)
+        Load_Vines_Delay = False
+
     #define date grid boundaries and properties
     lower_boundary = 240
     left_boundary = 10
@@ -69,7 +166,8 @@ def Calendar_Base():
         while left_boundary < right_boundary:
             #create date boxes
             Main_Canvas.create_rectangle(left_boundary, upper_boundary,
-                                         (left_boundary+column_width), (upper_boundary + row_width))
+                                         (left_boundary+column_width), (upper_boundary + row_width),
+                                         fill="white")
 
             #store co-ordinates for each date box in "cal_boxes"
             temp = [left_boundary, upper_boundary,
@@ -89,24 +187,55 @@ def Calendar_Base():
 
     day = 0
     inc = 0
+    heading_colour = "grey"
+    text_colour = "white"
+    weekday_font = font.Font(family="Algerian", size=11)
     while day != 7:
         x = (((int(cal_boxes[day][2])) - (int(cal_boxes[day][0]))) / 2) + inc + left_boundary
         y = (((int(cal_boxes[day][3])) - (int(cal_boxes[day][1]))) / 2) + upper_boundary
         inc = inc + column_width
         if day == 0:
-            Main_Canvas.create_text(x, y, text="S", anchor="center")
+            Main_Canvas.create_rectangle(cal_boxes[day][0], cal_boxes[day][1],
+                                         cal_boxes[day][2], cal_boxes[day][3],
+                                         fill=heading_colour)
+            Main_Canvas.create_text(x, y, text="S", anchor="center",
+                                    font=weekday_font, fill=text_colour)
         elif day == 1:
-            Main_Canvas.create_text(x, y, text="M", anchor="center")
+            Main_Canvas.create_rectangle(cal_boxes[day][0], cal_boxes[day][1],
+                                         cal_boxes[day][2], cal_boxes[day][3],
+                                         fill=heading_colour)
+            Main_Canvas.create_text(x, y, text="M", anchor="center",
+                                    font=weekday_font, fill=text_colour)
         elif day == 2:
-            Main_Canvas.create_text(x, y, text="T", anchor="center")
+            Main_Canvas.create_rectangle(cal_boxes[day][0], cal_boxes[day][1],
+                                         cal_boxes[day][2], cal_boxes[day][3],
+                                         fill=heading_colour)
+            Main_Canvas.create_text(x, y, text="T", anchor="center",
+                                    font=weekday_font, fill=text_colour)
         elif day == 3:
-            Main_Canvas.create_text(x, y, text="W", anchor="center")
+            Main_Canvas.create_rectangle(cal_boxes[day][0], cal_boxes[day][1],
+                                         cal_boxes[day][2], cal_boxes[day][3],
+                                         fill=heading_colour)
+            Main_Canvas.create_text(x, y, text="W", anchor="center",
+                                    font=weekday_font, fill=text_colour)
         elif day == 4:
-            Main_Canvas.create_text(x, y, text="T", anchor="center")
+            Main_Canvas.create_rectangle(cal_boxes[day][0], cal_boxes[day][1],
+                                         cal_boxes[day][2], cal_boxes[day][3],
+                                         fill=heading_colour)
+            Main_Canvas.create_text(x, y, text="T", anchor="center",
+                                    font=weekday_font, fill=text_colour)
         elif day == 5:
-            Main_Canvas.create_text(x, y, text="F", anchor="center")
+            Main_Canvas.create_rectangle(cal_boxes[day][0], cal_boxes[day][1],
+                                         cal_boxes[day][2], cal_boxes[day][3],
+                                         fill=heading_colour)
+            Main_Canvas.create_text(x, y, text="F", anchor="center",
+                                    font=weekday_font, fill=text_colour)
         elif day == 6:
-            Main_Canvas.create_text(x, y, text="S", anchor="center")
+            Main_Canvas.create_rectangle(cal_boxes[day][0], cal_boxes[day][1],
+                                         cal_boxes[day][2], cal_boxes[day][3],
+                                         fill=heading_colour)
+            Main_Canvas.create_text(x, y, text="S", anchor="center",
+                                    font=weekday_font, fill=text_colour)
         day = day + 1
 
     #create calendar arrow buttons
@@ -202,7 +331,9 @@ def Cal_Setup():
     Date = 1
 
     Cal_Title = Month_Abbrev[month_get] + " " + str(Current_Year)
-    Main_Canvas.create_text(150, 75, text=Cal_Title)
+    title_font = font.Font(family="Garamond", size=14)
+    number_font = font.Font(family="Arial CE", size=10)
+    Main_Canvas.create_text(150, 75, text=Cal_Title, font=title_font)
 
     while start != end:
         x = (cal_boxes[start][2]) - (column_width / 2)
@@ -210,13 +341,15 @@ def Cal_Setup():
 
         # click highlight
         if (Click_Highlight != None) and (Date == Click_Highlight) and (Click_Attrib == "grid"):
-            Main_Canvas.create_rectangle((x - 20), (y - 7), (20 + x), (7 + y), fill="lime")
+            Main_Canvas.create_oval((x - 8), (y - 8), (8 + x), (8 + y), fill="lime")
 
         if (Date == Date_Highlight) and (Current_Year == Year_Highlight) and (Current_Month == Month_Highlight):
-            Main_Canvas.create_rectangle((x-15), (y-8), (15+x), (8+y), fill="orange")
-            Main_Canvas.create_text(x, y, text=str(Date), fill="white", activefill="cyan")
+            Main_Canvas.create_oval((x - 8), (y - 8), (8 + x), (8 + y), fill="orange")
+            Main_Canvas.create_text(x, y, text=str(Date), fill="white", activefill="cyan",
+                                    font=number_font)
         else:
-            Main_Canvas.create_text(x, y, text=str(Date), fill="black", activefill="cyan")
+            Main_Canvas.create_text(x, y, text=str(Date), fill="black", activefill="cyan",
+                                    font=number_font)
 
         #Attach Dates to assigned boxes
         temp = cal_boxes[start]
@@ -470,6 +603,7 @@ def update_calendar():
     global Month_Highlight
     global Year_Highlight
     global Date_Highlight
+    global Load_Vines
 
     date_data_get = datetime.now()  # Fetch OS Time and Date Information
     month = date_data_get.month
@@ -488,8 +622,8 @@ def update_calendar():
     Year_Highlight = year
     Date_Highlight = day
 
-#force calendar update to system time
-update_calendar()
+    Load_Vines = True
+
 
 def Calendar_Grid_Click():
     global cal_index
@@ -522,8 +656,8 @@ def Calendar_Grid_Click():
         Main_Canvas.create_text(575, 325, text=str(fetch[5]))
         Main_Canvas.create_text(575, 350, text=str(fetch[4]))
 
-#main control for click bindings
-def Switchboard(event):
+#control Calendar for click bindings
+def Cal_Switchboard(event):
     #retrieve calendar grid boxes
     global cal_boxes
 
@@ -543,10 +677,370 @@ def Switchboard(event):
         index_check = index_check + 1
 
 
-#create click binding
-Main_Canvas.bind('<Button>', Switchboard)
+#----------------------------------------Calendar_Operations END----------------------------------------------
 
-#Tumble Start
-Cal_Setup()
+
+#----------------------------------------Boot_Screen_Operations_BEGIN-----------------------------------------
+#Date of Birth
+global dob_month
+global dob_year
+global dob_day
+global gender
+dob_month = 1
+dob_year = 2000
+dob_day = 1
+gender = None
+
+def create_new_user():
+    Main_Canvas.delete("all")
+
+    stop = 0
+    while stop != 200:
+        Main_Canvas.create_rectangle(250-stop, 225-stop, 900+stop, 425+stop, fill="lightgrey",
+                                     width=2, outline="grey")
+        stop = stop + 10
+        Main_Canvas.update()
+        time.sleep(0.01)
+
+    heading = font.Font(family="Constantia", size=25)
+    body = font.Font(family="Arial CE", size=15)
+
+    Main_Canvas.create_text(650, 150, text="CREATE NEW USER", font=heading)
+    Main_Canvas.create_line(500, 125, 800, 125)
+    Main_Canvas.create_line(500, 175, 800, 175)
+    Main_Canvas.create_text(575, 205, text="Username:", font=body, anchor='ne')
+    Main_Canvas.create_text(575, 305, text="Date of Birth:", font=body, anchor='ne')
+    Main_Canvas.create_text(575, 400, text="Gender:", font=body, anchor='ne')
+
+    #Username Entry Box
+    Main_Canvas.create_rectangle(580, 205, 820, 230, fill="white")
+    global name
+    name = ""
+
+    #Date of Birth
+    Main_Canvas.create_rectangle(580, 305, 605, 330, fill="lightgrey", outline="lightgrey")
+    Main_Canvas.create_text(592, 315, text=dob_day, font=body, anchor='c')
+    Main_Canvas.create_rectangle(620, 305, 750, 330, fill="lightgrey", outline="lightgrey")
+    Main_Canvas.create_text(685, 315, text=Month_List[dob_month], font=body, anchor='c')
+    Main_Canvas.create_rectangle(760, 305, 820, 330, fill="lightgrey", outline="lightgrey")
+    Main_Canvas.create_text(790, 315, text=dob_year, font=body, anchor='c')
+
+    #day arrows
+    Main_Canvas.create_polygon(602, 305, 582, 305, 592, 295, 602, 305, activefill="cyan")
+    Main_Canvas.create_polygon(602, 330, 582, 330, 592, 340, 602, 330, activefill="cyan")
+
+    #month arrows
+    Main_Canvas.create_polygon(695, 305, 675, 305, 685, 295, 695, 305, activefill="cyan")
+    Main_Canvas.create_polygon(695, 330, 675, 330, 685, 340, 695, 330, activefill="cyan")
+
+    #year arrows
+    Main_Canvas.create_polygon(800, 305, 780, 305, 790, 295, 800, 305, activefill="cyan")
+    Main_Canvas.create_polygon(800, 330, 780, 330, 790, 340, 800, 330, activefill="cyan")
+
+    #Gender Male
+    Main_Canvas.create_rectangle(580, 400, 610, 430, fill="grey", activefill="blue")
+    Main_Canvas.create_text(620, 400, text="Male", font=body, anchor='nw')
+
+    #Gender Female
+    Main_Canvas.create_rectangle(690, 400, 720, 430, fill="grey", activefill="magenta")
+    Main_Canvas.create_text(730, 400, text="Female", font=body, anchor='nw')
+
+    #create button
+    Main_Canvas.create_rectangle(600, 480, 700, 520, fill="grey")
+    Main_Canvas.create_text(650, 500, text="SUBMIT", activefill="cyan", font=('Arial CE', 18))
+
+def cnu_store_data():
+    global dob_month
+    global dob_year
+    global dob_day
+    global gender
+    global name
+
+    body = font.Font(family="Arial CE", size=12)
+    proceed = True
+    if name == "":
+        Main_Canvas.create_text(822, 207, text="*Required", fill="red", font=body, anchor='nw')
+        proceed = False
+
+    if gender == None:
+        Main_Canvas.create_text(822, 400, text="*Required", fill="red", font=body, anchor='nw')
+        proceed = False
+
+    if proceed == True:
+        username_taken = False
+        name = name.strip()
+        users = [f.path for f in os.scandir(polyfile) if f.is_dir()]
+        for item in users:
+            user = path.basename(item)
+            print(user)
+            if name == user:
+                username_taken = True
+                Main_Canvas.create_text(580, 185, text="*Username Taken", fill="red", font=body, anchor='nw')
+        if username_taken == False:
+            os.mkdir(polyfile + "/" + name)
+            user_info = open(polyfile + "/" + name + "/user_info.txt", 'w', encoding='utf8')
+            user_info.write(name + "\n")
+            user_info.write(str(dob_day) + "/" + str(dob_month) + "/" + str(dob_year) + "\n")
+            user_info.write(gender)
+            user_info.close()
+            global boot
+            boot = True
+            Methods_Sequence()
+
+#create_new_user switchboard click bindings
+def cnu_backspace(event):
+    global name
+    if len(name) > 0:
+        name = name.rstrip(name[-1])
+        body = font.Font(family="Arial CE", size=13)
+        Main_Canvas.create_rectangle(580, 185, 820, 205, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_rectangle(583, 230, 820, 270, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_rectangle(580, 205, 820, 230, fill="white", outline="blue")
+        Main_Canvas.create_text(583, 210, text=name, font=body, anchor='nw')
+
+def cnu_entry(event):
+    global name
+    key = event.char
+
+    #input validation
+    invalid_characters = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*", "."]
+    invalid = False
+    for character in invalid_characters:
+        if character == key:
+            invalid = True
+
+    if len(name) > 14:
+        invalid = True
+    if invalid == True:
+        Main_Canvas.create_text(583, 230, text="*Must not contain: <>:\"/\\|?*.", fill="red", anchor='nw')
+        Main_Canvas.create_text(583, 250, text="*Must be less than 15 characters", fill="red", anchor='nw')
+        body = font.Font(family="Arial CE", size=13)
+        Main_Canvas.create_rectangle(580, 205, 820, 230, fill="white", outline="red")
+        Main_Canvas.create_text(583, 210, text=name, font=body, anchor='nw')
+
+    #display string
+    if invalid == False:
+        name = name + key
+        body = font.Font(family="Arial CE", size=13)
+        Main_Canvas.create_rectangle(580, 185, 820, 205, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_rectangle(583, 230, 820, 270, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_rectangle(580, 205, 820, 230, fill="white", outline="blue")
+        Main_Canvas.create_text(583, 210, text=name, font=body, anchor='nw')
+
+def cnu_switchboard(event):
+    global dob_month
+    global dob_year
+    global dob_day
+    global gender
+
+    body = font.Font(family="Arial CE", size=15)
+
+    #date data
+    month = Month_List[dob_month]
+    end = 30 #referenced before assignment
+    if month == "January":
+        end = 31
+    elif month == "February":
+        leap = dob_year/4
+        if leap.is_integer():
+            end = 29
+        else:
+            end = 28
+    elif month == "March":
+        end = 31
+    elif month == "April":
+        end = 30
+    elif month == "May":
+        end = 31
+    elif month == "June":
+        end = 30
+    elif month == "July":
+        end = 31
+    elif month == "August":
+        end = 31
+    elif month == "September":
+        end = 30
+    elif month == "October":
+        end = 31
+    elif month == "November":
+        end = 30
+    elif month == "December":
+        end = 31
+
+    if (event.x < 602) and (event.x > 582) and (event.y > 295) and (event.y < 305):
+        dob_day = dob_day + 1
+        if dob_day > end:
+            dob_day = 1
+        Main_Canvas.create_rectangle(580, 305, 605, 330, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_text(592, 315, text=dob_day, font=body, anchor='c')
+    elif (event.x < 602) and (event.x > 582) and (event.y > 330) and (event.y < 340):
+        dob_day = dob_day - 1
+        if dob_day < 1:
+            dob_day = end
+        Main_Canvas.create_rectangle(580, 305, 605, 330, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_text(592, 315, text=dob_day, font=body, anchor='c')
+    elif (event.x < 695) and (event.x > 675) and (event.y > 295) and (event.y < 305):
+        dob_month = dob_month - 1
+        if dob_month < 1:
+            dob_month = 12
+        Main_Canvas.create_rectangle(620, 305, 750, 330, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_text(685, 315, text=Month_List[dob_month], font=body, anchor='c')
+
+        #calculate new end
+        month = Month_List[dob_month]
+        if month == "January":
+            end = 31
+        elif month == "February":
+            leap = dob_year / 4
+            if leap.is_integer():
+                end = 29
+            else:
+                end = 28
+        elif month == "March":
+            end = 31
+        elif month == "April":
+            end = 30
+        elif month == "May":
+            end = 31
+        elif month == "June":
+            end = 30
+        elif month == "July":
+            end = 31
+        elif month == "August":
+            end = 31
+        elif month == "September":
+            end = 30
+        elif month == "October":
+            end = 31
+        elif month == "November":
+            end = 30
+        elif month == "December":
+            end = 31
+        #check that day is still in proper range
+        if dob_day > end:
+            dob_day = end
+            Main_Canvas.create_rectangle(580, 305, 605, 330, fill="lightgrey", outline="lightgrey")
+            Main_Canvas.create_text(592, 315, text=dob_day, font=body, anchor='c')
+    elif (event.x < 695) and (event.x > 675) and (event.y > 330) and (event.y < 340):
+        dob_month = dob_month + 1
+        if dob_month > 12:
+            dob_month = 1
+        Main_Canvas.create_rectangle(620, 305, 750, 330, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_text(685, 315, text=Month_List[dob_month], font=body, anchor='c')
+
+        # calculate new end
+        month = Month_List[dob_month]
+        if month == "January":
+            end = 31
+        elif month == "February":
+            leap = dob_year / 4
+            if leap.is_integer():
+                end = 29
+            else:
+                end = 28
+        elif month == "March":
+            end = 31
+        elif month == "April":
+            end = 30
+        elif month == "May":
+            end = 31
+        elif month == "June":
+            end = 30
+        elif month == "July":
+            end = 31
+        elif month == "August":
+            end = 31
+        elif month == "September":
+            end = 30
+        elif month == "October":
+            end = 31
+        elif month == "November":
+            end = 30
+        elif month == "December":
+            end = 31
+        # check that day is still in proper range
+        if dob_day > end:
+            dob_day = end
+            Main_Canvas.create_rectangle(580, 305, 605, 330, fill="lightgrey", outline="lightgrey")
+            Main_Canvas.create_text(592, 315, text=dob_day, font=body, anchor='c')
+    elif (event.x < 800) and (event.x > 780) and (event.y > 295) and (event.y < 305):
+        dob_year = dob_year + 1
+        if dob_year > 2020:
+            dob_year = 2020
+        Main_Canvas.create_rectangle(760, 305, 820, 330, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_text(790, 315, text=dob_year, font=body, anchor='c')
+        month = Month_List[dob_month]
+        leap = dob_year / 4
+        if (month == "February") and (leap.is_integer() == False):
+            if dob_day > 28:
+                dob_day = 28
+                Main_Canvas.create_rectangle(580, 305, 605, 330, fill="lightgrey", outline="lightgrey")
+                Main_Canvas.create_text(592, 315, text=dob_day, font=body, anchor='c')
+    elif (event.x < 800) and (event.x > 780) and (event.y > 330) and (event.y < 340):
+        dob_year = dob_year - 1
+        if dob_year < 1920:
+            dob_year = 1920
+        Main_Canvas.create_rectangle(760, 305, 820, 330, fill="lightgrey", outline="lightgrey")
+        Main_Canvas.create_text(790, 315, text=dob_year, font=body, anchor='c')
+        month = Month_List[dob_month]
+        leap = dob_year / 4
+        if (month == "February") and (leap.is_integer() == False):
+            if dob_day > 28:
+                dob_day = 28
+                Main_Canvas.create_rectangle(580, 305, 605, 330, fill="lightgrey", outline="lightgrey")
+                Main_Canvas.create_text(592, 315, text=dob_day, font=body, anchor='c')
+    elif (event.x < 610) and (event.x > 580) and (event.y > 400) and (event.y < 430):
+        gender = "Male"
+        Main_Canvas.create_rectangle(690, 400, 720, 430, fill="grey", activefill="magenta")
+        Main_Canvas.create_line(580, 420, 590, 430, 610, 400, width=2, fill="green")
+    elif (event.x < 720) and (event.x > 690) and (event.y > 400) and (event.y < 430):
+        gender = "Female"
+        Main_Canvas.create_rectangle(580, 400, 610, 430, fill="grey", activefill="blue")
+        Main_Canvas.create_line(690, 420, 700, 430, 720, 400, width=2, fill="green")
+    elif (event.x < 820) and (event.x > 580) and (event.y > 205) and (event.y < 230):
+        Main_Canvas.focus_set()
+        Main_Canvas.bind('<Key>', cnu_entry)
+        Main_Canvas.bind('<BackSpace>', cnu_backspace)
+        if name == "":
+            Main_Canvas.create_rectangle(580, 205, 820, 230, fill="white", outline="blue")
+    elif (event.x < 700) and (event.x > 600) and (event.y > 480) and (event.y < 520):
+        cnu_store_data()
+
+#----------------------------------------Boot_Screen_Operations_END-------------------------------------------
+
+
+#--------------------------------Method_Sequence_Control_Panel_BEGIN----------------------------------------
+#check polyfile directory for users
+users = [f.path for f in os.scandir(polyfile) if f.is_dir()]
+global boot
+if len(users) == 0:
+    boot = 0
+elif len(users) == 1:
+    boot = 1
+elif len(users) > 1:
+    boot = 2
+
+def Methods_Sequence():
+    global boot
+    if boot == 0:
+        # create click binding
+        Main_Canvas.bind('<Button>', cnu_switchboard)
+        create_new_user()
+    else:
+        # create click binding
+        Main_Canvas.bind('<Button>', Cal_Switchboard)
+
+        #force calendar update to system time
+        update_calendar()
+
+        #Tumble Start (this loads vine animation)
+        Cal_Setup()
+
+
+
+#--------------------------------Method_Sequence_Control_Panel_END------------------------------------------
+
+#Call Methods_Sequence to start program
+Methods_Sequence()
 
 root.mainloop()
