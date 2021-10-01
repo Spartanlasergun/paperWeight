@@ -113,7 +113,6 @@ def Calendar_Base():
             b = b + 2
             c = c + 2
             stop = stop + 1
-            Main_Canvas.create_rectangle(75-stop, 175-stop, 225+stop, 175+stop, fill="white")
             if Load_Vines_Delay == True:
                 Main_Canvas.update()
                 time.sleep(0.02)
@@ -664,8 +663,12 @@ def Cal_Switchboard(event):
     #calendar arrow bindings
     if (event.x < 105) and (event.x > 85) and (event.y > 65) and (event.y < 85):
         Cal_Backward()
+        settings_icon()
+        username_display()
     elif (event.x < 215) and (event.x > 195) and (event.y > 65) and (event.y < 85):
         Cal_Forward()
+        settings_icon()
+        username_display()
 
     #calendar grid boxes bindings
     global cal_index
@@ -674,10 +677,144 @@ def Cal_Switchboard(event):
         if (event.x < coords[2]) and (event.x > coords[0]) and (event.y > coords[1]) and (event.y < coords[3]):
             cal_index = index_check
             Calendar_Grid_Click()
+            settings_icon()
+            username_display()
         index_check = index_check + 1
 
+    #settings binding
+    if (event.x < 350) and (event.x > 300) and (event.y > 0) and (event.y < 50):
+        settings()
+    
+    #exit settings binding
+    
 
 #----------------------------------------Calendar_Operations END----------------------------------------------
+
+#---------------------------------------Display_Username_Operations_BEGIN-------------------------------------
+
+def username_display():
+    global name
+    heading = font.Font(family="Segoe UI Black11", size=16, weight="bold")
+    Main_Canvas.create_text(150, 25, text=name, font=heading)
+
+
+#---------------------------------------Display_Username_Operations_END---------------------------------------
+
+#----------------------------------------Settings_Operations_BEGIN--------------------------------------------
+def settings_click(event):
+    global boot
+    #exit settings
+    if (event.x < 1100) and (event.x > 1075) and (event.y > 50) and (event.y < 75):
+        boot = True
+        Methods_Sequence()
+
+    #create new user binding
+    if (event.x < 300) and (event.x > 150) and (event.y > 100) and (event.y < 125):
+        boot = 0
+        Methods_Sequence()
+
+    if (event.x < 300) and (event.x > 150) and (event.y > 125) and (event.y < 150):
+        switch_user()
+
+def settings():
+    # create click binding
+    Main_Canvas.bind('<Button>', settings_click)
+
+    heading = font.Font(family="Segoe UI Black11", size=16, weight="bold")
+    heading_2 = font.Font(family="Segoe UI Black11", size=10)
+    body = font.Font(family="Segoe UI11", size=10)
+
+    Main_Canvas.create_rectangle(50, 50, 1100, 600, fill="white", outline="black", width=2) #main window
+    Main_Canvas.create_rectangle(50, 50, 1100, 75, fill="grey15", outline="grey15") #settings bar
+    Main_Canvas.create_rectangle(1075, 50, 1100, 75, fill="red3")
+    Main_Canvas.create_line(1075, 50, 1100, 75, width=2)
+    Main_Canvas.create_line(1075, 75, 1100, 50, width=2)
+    Main_Canvas.create_rectangle(1075, 50, 1100, 75, activefill="red")
+    Main_Canvas.create_text(575, 64, text="SETTINGS", fill="white", font=heading)
+    Main_Canvas.create_rectangle(50, 75, 1100, 100, fill="grey30") #settings categories bar
+    Main_Canvas.create_text(225, 87, text="USERS", fill="white", font=heading_2)
+    Main_Canvas.create_text(575, 87, text="DISPLAY", fill="white", font=heading_2)
+    Main_Canvas.create_text(925, 87, text="CALCUALTIONS", fill="white", font=heading_2)
+    Main_Canvas.create_line(400, 75, 400, 600)
+    Main_Canvas.create_line(750, 75, 750, 600)
+    Main_Canvas.create_text(225, 112, text="Create New User", fill="blue", activefill="cyan", font=body)
+    Main_Canvas.create_text(225, 137, text="Switch User", fill="blue", activefill="cyan", font=body)
+    Main_Canvas.create_text(225, 162, text="Delete User", fill="blue", activefill="cyan", font=body)
+    Main_Canvas.create_text(225, 187, text="Clear User Data", fill="blue", activefill="cyan", font=body)
+    Main_Canvas.create_text(575, 112, text="Change Display Theme", fill="blue", activefill="cyan", font=body)
+    Main_Canvas.create_text(925, 112, text="Units of Measurement", fill="blue", activefill="cyan", font=body)
+    Main_Canvas.create_text(925, 137, text="Advanced Calculations", fill="blue", activefill="cyan", font=body)
+
+    # imaginary boxes for bindings
+    #Main_Canvas.create_rectangle(150, 100, 300, 125) --->create new user
+    #Main_Canvas.create_rectangle(150, 125, 300, 150) --->switch user
+
+def settings_icon():
+    Main_Canvas.create_text(325, 25, text="Settings", activefill="cyan")
+
+#----------------------------------------Settings_Operations_END----------------------------------------------
+
+
+
+#----------------------------------------Switch_User_Operations_BEGIN-----------------------------------------
+def switch_user_click(event):
+    global select_username
+
+    if (event.x < 595) and (event.x > 555) and (event.y > 280) and (event.y < 300):
+        select_username = select_username + 1
+        switch_user()
+
+    if (event.x < 595) and (event.x > 555) and (event.y > 350) and (event.y < 370):
+        select_username = select_username + 1
+        switch_user()
+
+    if (event.x < 595) and (event.x > 555) and (event.y > 390) and (event.y < 410):
+        global name
+        global usernames
+        name = usernames[select_username]
+        settings()
+
+global select_username
+select_username = 0
+
+def switch_user():
+    # create click binding
+    Main_Canvas.bind('<Button>', switch_user_click)
+
+    #Read Usernames
+    users = [f.path for f in os.scandir(polyfile) if f.is_dir()]
+    global usernames
+    usernames = []
+    for name in users:
+        username = path.basename(name)
+        usernames.append(username)
+
+    heading = font.Font(family="Segoe UI Black11", size=16, weight="bold")
+    heading_2 = font.Font(family="Segoe UI Black11", size=20)
+
+    Main_Canvas.create_rectangle(325, 125, 825, 525, fill="white", outline="black", width=2)  # main window
+    Main_Canvas.create_rectangle(325, 125, 825, 150, fill="grey15", outline="grey15")  # settings bar
+    Main_Canvas.create_text(575, 137, text="SWTICH USER", fill="white", font=heading)
+
+    #create arrows
+    #up
+    Main_Canvas.create_polygon(595, 300, 555, 300, 575, 280, 595, 300, fill="black", activefill="cyan")
+    #down
+    Main_Canvas.create_polygon(595, 350, 555, 350, 575, 370, 595, 350, fill="black", activefill="cyan")
+
+    #OK BUTTON
+    Main_Canvas.create_rectangle(555, 390, 595, 410, fill="grey")
+    Main_Canvas.create_text(575, 400, text="OK", font=heading, activefill="cyan")
+
+    global select_username
+    all = len(usernames) - 1
+    if select_username < 0:
+        select_username = all
+    if select_username > all:
+        select_username = 0
+    Main_Canvas.create_text(575, 325, text=usernames[select_username], font=heading_2)
+
+#----------------------------------------Switch_User_Operations_END-------------------------------------------
 
 
 #----------------------------------------Boot_Screen_Operations_BEGIN-----------------------------------------
@@ -691,19 +828,84 @@ dob_year = 2000
 dob_day = 1
 gender = None
 
+#load images
+Clipboard_IMG = tkinter.PhotoImage(file="Clipboard.png")
+Sticky_Notes_IMG = tkinter.PhotoImage(file="Sticky_Notes.png")
+
+def sle_click(event):
+    global select_username
+
+    if (event.x < 595) and (event.x > 555) and (event.y > 280) and (event.y < 300):
+        select_username = select_username + 1
+        select_existing_user()
+
+    if (event.x < 595) and (event.x > 555) and (event.y > 350) and (event.y < 370):
+        select_username = select_username + 1
+        select_existing_user()
+
+    if (event.x < 595) and (event.x > 555) and (event.y > 390) and (event.y < 410):
+        global name
+        global usernames
+        name = usernames[select_username]
+        global boot
+        boot = True
+        Methods_Sequence()
+
+
+def select_existing_user():
+    # create click binding
+    Main_Canvas.bind('<Button>', sle_click)
+
+    #Read Usernames
+    users = [f.path for f in os.scandir(polyfile) if f.is_dir()]
+    global usernames
+    usernames = []
+    for name in users:
+        username = path.basename(name)
+        usernames.append(username)
+
+    heading = font.Font(family="Segoe UI Black11", size=16, weight="bold")
+    heading_2 = font.Font(family="Segoe UI Black11", size=20)
+
+    Main_Canvas.create_rectangle(325, 125, 825, 525, fill="white", outline="black", width=2)  # main window
+    Main_Canvas.create_rectangle(325, 125, 825, 150, fill="grey15", outline="grey15")  # settings bar
+    Main_Canvas.create_text(575, 137, text="SWTICH USER", fill="white", font=heading)
+
+    #create arrows
+    #up
+    Main_Canvas.create_polygon(595, 300, 555, 300, 575, 280, 595, 300, fill="black", activefill="cyan")
+    #down
+    Main_Canvas.create_polygon(595, 350, 555, 350, 575, 370, 595, 350, fill="black", activefill="cyan")
+
+    #OK BUTTON
+    Main_Canvas.create_rectangle(555, 390, 595, 410, fill="grey")
+    Main_Canvas.create_text(575, 400, text="OK", font=heading, activefill="cyan")
+
+    global select_username
+    all = len(usernames) - 1
+    if select_username < 0:
+        select_username = all
+    if select_username > all:
+        select_username = 0
+    Main_Canvas.create_text(575, 325, text=usernames[select_username], font=heading_2)
+
 def create_new_user():
     Main_Canvas.delete("all")
 
+    Main_Canvas.create_image(0, 0, anchor='nw', image=Sticky_Notes_IMG)
     stop = 0
     while stop != 200:
-        Main_Canvas.create_rectangle(250-stop, 225-stop, 900+stop, 425+stop, fill="lightgrey",
-                                     width=2, outline="grey")
+        Main_Canvas.create_rectangle(595-stop, 300-stop, 705+stop, 375+stop, fill="lightgrey",
+                                     width=2, outline="purple")
         stop = stop + 10
         Main_Canvas.update()
         time.sleep(0.01)
 
     heading = font.Font(family="Constantia", size=25)
     body = font.Font(family="Arial CE", size=15)
+
+    #Main_Canvas.create_image(0, 0, anchor='nw', image=Sticky_Notes_IMG)
+    #Main_Canvas.create_rectangle(400, 100, 900, 575, fill="lightgrey")
 
     Main_Canvas.create_text(650, 150, text="CREATE NEW USER", font=heading)
     Main_Canvas.create_line(500, 125, 800, 125)
@@ -746,8 +948,12 @@ def create_new_user():
     Main_Canvas.create_text(730, 400, text="Female", font=body, anchor='nw')
 
     #create button
-    Main_Canvas.create_rectangle(600, 480, 700, 520, fill="grey")
-    Main_Canvas.create_text(650, 500, text="SUBMIT", activefill="cyan", font=('Arial CE', 18))
+    #Main_Canvas.create_rectangle(600, 480, 700, 520, fill="grey")
+    Main_Canvas.create_polygon(610, 475, 690, 475, 705, 500, 690, 525, 610, 525, 595, 500, 610, 475,
+                               fill="cyan", outline="black", smooth=1)
+    Main_Canvas.create_polygon(615, 480, 685, 480, 700, 500, 685, 520, 615, 520, 600, 500, 615, 480,
+                               fill="grey", outline="black", smooth=1)
+    Main_Canvas.create_text(650, 500, text="SUBMIT", activefill="cyan", font=('Arial CE', 14))
 
 def cnu_store_data():
     global dob_month
@@ -772,7 +978,6 @@ def cnu_store_data():
         users = [f.path for f in os.scandir(polyfile) if f.is_dir()]
         for item in users:
             user = path.basename(item)
-            print(user)
             if name == user:
                 username_taken = True
                 Main_Canvas.create_text(580, 185, text="*Username Taken", fill="red", font=body, anchor='nw')
@@ -1016,9 +1221,20 @@ global boot
 if len(users) == 0:
     boot = 0
 elif len(users) == 1:
-    boot = 1
+    boot = "only"
 elif len(users) > 1:
     boot = 2
+
+def fetch_username():
+    # Read Usernames
+    global name
+    users = [f.path for f in os.scandir(polyfile) if f.is_dir()]
+    fetch = users[0]
+    username = path.basename(fetch)
+    name = username
+    global boot
+    boot = True
+    Methods_Sequence()
 
 def Methods_Sequence():
     global boot
@@ -1026,7 +1242,11 @@ def Methods_Sequence():
         # create click binding
         Main_Canvas.bind('<Button>', cnu_switchboard)
         create_new_user()
-    else:
+    elif boot == "only":
+        fetch_username()
+    elif boot > 1:
+        select_existing_user()
+    elif boot == True:
         # create click binding
         Main_Canvas.bind('<Button>', Cal_Switchboard)
 
@@ -1035,6 +1255,12 @@ def Methods_Sequence():
 
         #Tumble Start (this loads vine animation)
         Cal_Setup()
+
+        #Settings Icon
+        settings_icon()
+
+        #Display Username
+        username_display()
 
 
 
